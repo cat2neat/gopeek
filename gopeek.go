@@ -106,7 +106,7 @@ const (
 
 var (
 	// ErrTimeout indicates timeout happened while calling Condition.Wait.
-	ErrTimeout = errors.New("Timeout occured while waiting")
+	ErrTimeout = errors.New("Timeout occurred while waiting")
 )
 
 // NewCondition returns a new Condition

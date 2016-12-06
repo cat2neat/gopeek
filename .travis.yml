@@ -1,0 +1,13 @@
+language: go
+
+go: 
+  - 1.6
+  - 1.7
+  - tip
+
+install:
+  - go get -u github.com/davecgh/go-spew/spew
+  - go get -u github.com/cat2neat/gopeek
+
+script:
+  - go test -cover

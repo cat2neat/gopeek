@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/cat2neat/gopeek)](https://goreportcard.com/report/cat2neat/gopeek) [![Build Status](https://travis-ci.org/cat2neat/gopeek.svg?branch=master)](https://travis-ci.org/cat2neat/gopeek)
 gopeek
 ======
 
@@ -35,7 +36,7 @@ gopeek.NewCondition().
        In(gopeek.StateWaitingIO, gopeek.StateWaitingLock, gopeek.StateSleeping).
        FilterByGoes(func(gs []stack.Gorotine) bool {
           return len(gs) == 3 || len(gs) >= 6
-      }).
+       }).
        Wait(time.Millisecond)
 ```
 
