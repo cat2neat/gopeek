@@ -1,6 +1,7 @@
-[![Go Report Card](https://goreportcard.com/badge/cat2neat/gopeek)](https://goreportcard.com/report/cat2neat/gopeek) [![Build Status](https://travis-ci.org/cat2neat/gopeek.svg?branch=master)](https://travis-ci.org/cat2neat/gopeek)
 gopeek
 ======
+
+[![Go Report Card](https://goreportcard.com/badge/cat2neat/gopeek)](https://goreportcard.com/report/cat2neat/gopeek) [![Build Status](https://travis-ci.org/cat2neat/gopeek.svg?branch=master)](https://travis-ci.org/cat2neat/gopeek) [![Coverage Status](https://coveralls.io/repos/github/cat2neat/gopeek/badge.svg?branch=master)](https://coveralls.io/github/cat2neat/gopeek?branch=master)
 
 Peeks goroutines and helps gophers cope with those in intuitive ways
 such as waiting for some goroutines
