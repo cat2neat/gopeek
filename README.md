@@ -18,6 +18,8 @@ motivated me.
 With gopeek, we can
 
 ```go
+import "github.com/cat2neat/gopeek"
+
 // Wait for goroutines
 // - created by the func in "github.com/cat2neat/gopeek/.*" (regex can be used)
 // - blocked by channel primitives

@@ -5,7 +5,7 @@
 // It is mostly useful on test code now using time.Sleep to yield
 // other goroutines a moment to make something happen.
 // Such tests tend to take long if time.Sleep invoked many times.
-// With gopeek, you can do within the order of magnitude less time.
+// With gopeek you can do within the order of magnitude less time.
 package gopeek
 
 import (
@@ -29,7 +29,9 @@ type (
 	FilterByGoes func([]stack.Goroutine) bool
 
 	// Condition provides the way to describe what/how many goroutines exist and
-	// What state they are by using built-in|user-defined FilterByGo(es).
+	// what state they are by using built-in|user-defined filters and
+	// retrieve goroutines that satisfy all filters or wait until there is
+	// at least one goroutine that satisfy all filters.
 	Condition struct {
 		filters []interface{}
 		buf     []byte
@@ -105,7 +107,7 @@ const (
 )
 
 var (
-	// ErrTimeout indicates timeout happened while calling Condition.Wait.
+	// ErrTimeout indicates timeout happened while calling Wait.
 	ErrTimeout = errors.New("Timeout occurred while waiting")
 )
 
@@ -114,7 +116,8 @@ func NewCondition() *Condition {
 	return NewConditionWithConfig(defaultFilterSize, defaultBufSize)
 }
 
-// NewConditionWithConfig returns a new Condition with configs.
+// NewConditionWithConfig returns a new Condition configured by
+// filterSize and bufSize.
 func NewConditionWithConfig(filterSize int, bufSize int) *Condition {
 	return &Condition{
 		filters: make([]interface{}, 0, filterSize),
@@ -123,18 +126,22 @@ func NewConditionWithConfig(filterSize int, bufSize int) *Condition {
 }
 
 // FilterByGo adds a user-defined FilterByGo filter.
+// It returns Condition itself for method chaining.
 func (c *Condition) FilterByGo(f FilterByGo) *Condition {
 	c.filters = append(c.filters, f)
 	return c
 }
 
 // FilterByGoes adds a user-defined FilterByGoes filter.
+// It returns Condition itself for method chaining.
 func (c *Condition) FilterByGoes(f FilterByGoes) *Condition {
 	c.filters = append(c.filters, f)
 	return c
 }
 
-// GT adds a FilterByGoes filter which return true if len(goroutines) > v.
+// GT adds a FilterByGoes filter that return true if len(goroutines) > v
+// or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) GT(v int) *Condition {
 	f := func(gs []stack.Goroutine) bool {
 		return len(gs) > v
@@ -143,7 +150,9 @@ func (c *Condition) GT(v int) *Condition {
 	return c
 }
 
-// LT adds a FilterByGoes filter which return true if len(goroutines) < v.
+// LT adds a FilterByGoes filter that return true if len(goroutines) < v
+// or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) LT(v int) *Condition {
 	f := func(gs []stack.Goroutine) bool {
 		return len(gs) < v
@@ -152,7 +161,9 @@ func (c *Condition) LT(v int) *Condition {
 	return c
 }
 
-// EQ adds a FilterByGoes filter which return true if len(goroutines) == v.
+// EQ adds a FilterByGoes filter that return true if len(goroutines) == v
+// or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) EQ(v int) *Condition {
 	f := func(gs []stack.Goroutine) bool {
 		return len(gs) == v
@@ -161,8 +172,9 @@ func (c *Condition) EQ(v int) *Condition {
 	return c
 }
 
-// Is adds a FilterByGo filter which return true
-// if a goroutine's state == state.
+// Is adds a FilterByGo filter that return true if a goroutine's state == state
+// or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) Is(state State) *Condition {
 	f := func(g *stack.Goroutine) bool {
 		cur := NewState(g.State)
@@ -172,8 +184,9 @@ func (c *Condition) Is(state State) *Condition {
 	return c
 }
 
-// Not adds a FilterByGo filter which return true
-// if a goroutine's state != state.
+// Not adds a FilterByGo filter that return true if a goroutine's state != state
+// or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) Not(state State) *Condition {
 	f := func(g *stack.Goroutine) bool {
 		cur := NewState(g.State)
@@ -183,8 +196,9 @@ func (c *Condition) Not(state State) *Condition {
 	return c
 }
 
-// In adds a FilterByGo filter which return true
-// if a goroutine's state is included in states.
+// In adds a FilterByGo filter that return true
+// if a goroutine's state is included in states or false otherwise.
+// It returns Condition itself for method chaining.
 func (c *Condition) In(states ...State) *Condition {
 	f := func(g *stack.Goroutine) bool {
 		cur := NewState(g.State)
@@ -199,10 +213,9 @@ func (c *Condition) In(states ...State) *Condition {
 	return c
 }
 
-// Eval retrieves all goroutines and apply all filters.
-// returns goroutines if there are ones satisfy all filter's conditions,
-// otherwise nil.
-// error may be returned when stack.ParseDump failed.
+// Eval retrieves all goroutines that currently exist and apply all filters.
+// It returns goroutines that satisfy all filter's conditions
+// or nil otherwise and error when stack.ParseDump failed.
 func (c *Condition) Eval() ([]stack.Goroutine, error) {
 	var n int
 	for {
@@ -247,9 +260,10 @@ func (c *Condition) Eval() ([]stack.Goroutine, error) {
 	return gs, nil
 }
 
-// Wait calls Eval until Eval returns goroutines or error, or timeout passed.
-// returns goroutines if there are ones satisfy all filter's conditions.
-// error may be returned when stack.ParseDump failed or timeout happened.
+// Wait calls Eval repeatedly until Eval returns at least one goroutine
+// or error or timeout passed.
+// It returns goroutines that satisfy all filter's conditions or nil otherwise
+// and error when stack.ParseDump failed or timeout happened.
 func (c *Condition) Wait(timeout time.Duration) ([]stack.Goroutine, error) {
 	start := time.Now()
 	for {
