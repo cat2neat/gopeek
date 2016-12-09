@@ -1,6 +1,7 @@
 package gopeek_test
 
 import (
+	"math/rand"
 	"sync"
 	"testing"
 	"time"
@@ -138,4 +139,40 @@ func TestState(t *testing.T) {
 			t.Errorf("expected: %d, actual: %d", int(ts.expected), int(s))
 		}
 	}
+}
+
+func BenchmarkState(b *testing.B) {
+	args := []string{"idle", "runnable", "running", "syscall", "waiting", "dead",
+		"enqueue", "copystack", "sleep", "IO wait"}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		idx := r.Int() % len(args)
+		gopeek.NewState(args[idx])
+	}
+	b.StopTimer()
+}
+
+func BenchmarkStateWithMap(b *testing.B) {
+	args := []string{"idle", "runnable", "running", "syscall", "waiting", "dead",
+		"enqueue", "copystack", "sleep", "IO wait"}
+	smap := map[string]gopeek.State{
+		"idle":      gopeek.StateIdle,
+		"runnable":  gopeek.StateRunnable,
+		"running":   gopeek.StateRunning,
+		"syscall":   gopeek.StateSysCall,
+		"waiting":   gopeek.StateWaiting,
+		"dead":      gopeek.StateDead,
+		"enqueue":   gopeek.StateEnqueue,
+		"copystack": gopeek.StateCopyStack,
+		"sleep":     gopeek.StateSleeping,
+		"IO wait":   gopeek.StateWaitingIO,
+	}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		idx := r.Int() % len(args)
+		_, _ = smap[args[idx]]
+	}
+	b.StopTimer()
 }
