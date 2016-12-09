@@ -56,6 +56,7 @@ func TestGoPeek(t *testing.T) {
 				}
 				// Wait until all spawned goroutines blocked due to lock(cond)
 				gs, err := gopeek.NewCondition().
+					CreatedBy("gopeek_test.TestGoPeek.*").
 					Is(gopeek.StateWaitingLock).
 					EQ(3).Wait(time.Second)
 				cond.Broadcast()

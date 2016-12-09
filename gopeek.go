@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -169,6 +170,20 @@ func (c *Condition) EQ(v int) *Condition {
 		return len(gs) == v
 	}
 	c.filters = append(c.filters, FilterByGoes(f))
+	return c
+}
+
+// CreatedBy adds a FilterByGo filter that return true
+// if a goroutine's Signature.CreatedBy.Func.PkgDotName() matches fun regexp
+// or false otherwise.
+// It returns Condition itself for method chaining.
+// Panic happens if regexp failed to compile fun.
+func (c *Condition) CreatedBy(fun string) *Condition {
+	re := regexp.MustCompile(fun)
+	f := func(g *stack.Goroutine) bool {
+		return re.Match([]byte(g.Signature.CreatedBy.Func.PkgDotName()))
+	}
+	c.filters = append(c.filters, FilterByGo(f))
 	return c
 }
 
