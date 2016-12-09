@@ -31,7 +31,7 @@ import "github.com/maruel/panicparse/stack"
 // Timeout after time.Millisecond passed if no goroutines satisfy such.
 gopeek.NewCondition().
        CreatedBy("github.com/cat2neat/gopeek/.*").
-       FilterByGo(func(g []stack.Gorotine) bool {
+       FilterByGo(func(g stack.Gorotine) bool {
           return g.Signature.Locked
        }).
        Is(gopeek.StateWaitingChannel).
