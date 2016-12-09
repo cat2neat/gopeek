@@ -15,17 +15,25 @@ With gopeek you can do within the order of magnitude less time.
 https://github.com/uber-go/ratelimit/pull/1#discussion-diff-78767601
 motivated me.
 
-With gopeek, we can
+Example
+-------
 
 ```go
 import "github.com/cat2neat/gopeek"
+import "github.com/maruel/panicparse/stack"
 
 // Wait for goroutines
-// - created by the func in "github.com/cat2neat/gopeek/.*" (regex can be used)
+// - created by the func in "github.com/cat2neat/gopeek/.*" (Regex can be used)
+// - locked at a M (Any fields in stack.Gorotine can be used at user-defined)
 // - blocked by channel primitives
 // - the number of goroutines which satisfy the above conditions == 3
+// Return goroutines that satisfy the above all conditions or
+// Timeout after time.Millisecond passed if no goroutines satisfy such.
 gopeek.NewCondition().
        CreatedBy("github.com/cat2neat/gopeek/.*").
+       FilterByGo(func(g []stack.Gorotine) bool {
+          return g.Signature.Locked
+       }).
        Is(gopeek.StateWaitingChannel).
        EQ(3).
        Wait(time.Millisecond)
@@ -34,6 +42,8 @@ gopeek.NewCondition().
 // - created by the func in "github.com/cat2neat/gopeek/.*"
 // - blocked by I/O (net poller) or Lock caused by sync primitives or time.Sleep
 // - the number of goroutines which satisfy the above conditions == 3 or >= 6
+// Return goroutines that satisfy the above all conditions or
+// Timeout after time.Millisecond passed if no goroutines satisfy such.
 gopeek.NewCondition().
        CreatedBy("github.com/cat2neat/gopeek/.*").
        In(gopeek.StateWaitingIO, gopeek.StateWaitingLock, gopeek.StateSleeping).
