@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cat2neat/gopeek"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/maruel/panicparse/stack"
 )
 
@@ -96,7 +95,6 @@ func TestGoPeek(t *testing.T) {
 		} else if ts.err != err {
 			t.Errorf("error expected: %+v, actual: %+v\n", ts.err, err)
 		}
-		spew.Dump(gs)
 	}
 }
 
