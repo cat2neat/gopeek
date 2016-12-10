@@ -19,7 +19,7 @@ func TestGoPeek(t *testing.T) {
 	}{
 		{
 			do: func() ([]stack.Goroutine, error) {
-				return gopeek.NewCondition().
+				return gopeek.NewCondition(gopeek.WithBufSize(256)).
 					FilterByGo(
 						func(g *stack.Goroutine) bool {
 							return true
@@ -39,7 +39,7 @@ func TestGoPeek(t *testing.T) {
 		{
 			do: func() ([]stack.Goroutine, error) {
 				// Never happen
-				return gopeek.NewCondition().
+				return gopeek.NewCondition(gopeek.WithFilterSize(2)).
 					In(gopeek.StateSysCall, gopeek.StateWaitingIO).
 					GT(1).Wait(time.Millisecond)
 			},
@@ -56,7 +56,7 @@ func TestGoPeek(t *testing.T) {
 					}()
 				}
 				// Wait until all spawned goroutines blocked due to lock(cond)
-				gs, err := gopeek.NewCondition().
+				gs, err := gopeek.NewCondition(gopeek.WithBufSize(4096), gopeek.WithFilterSize(3)).
 					CreatedBy("gopeek_test.TestGoPeek.*").
 					Is(gopeek.StateWaitingLock).
 					EQ(3).Wait(time.Second)

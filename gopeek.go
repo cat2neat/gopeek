@@ -40,6 +40,9 @@ type (
 
 	// State represents a state of a goroutine based on G's waitreason.
 	State int
+
+	// Option configures a Condition.
+	Option func(*Condition)
 )
 
 const (
@@ -112,18 +115,39 @@ var (
 	ErrTimeout = errors.New("Timeout occurred while waiting")
 )
 
-// NewCondition returns a new Condition
-func NewCondition() *Condition {
-	return NewConditionWithConfig(defaultFilterSize, defaultBufSize)
+// WithFilterSize returns an Option for gopeek.NewCondition
+// that provides a initial filter size. Setting this value is meory efficient
+// if how many filters you will use is determined beforehand.
+func WithFilterSize(fs int) Option {
+	return func(c *Condition) {
+		c.filters = make([]interface{}, 0, fs)
+	}
 }
 
-// NewConditionWithConfig returns a new Condition configured by
-// filterSize and bufSize.
-func NewConditionWithConfig(filterSize int, bufSize int) *Condition {
-	return &Condition{
-		filters: make([]interface{}, 0, filterSize),
-		buf:     make([]byte, bufSize),
+// WithBufSize returns an Option for gopeek.NewCondition
+// that provides a initial buffer size used for storing data
+// returned from runtime.Stack. In most cases the default(1M) is sufficient.
+func WithBufSize(bs int) Option {
+	return func(c *Condition) {
+		c.buf = make([]byte, bs)
 	}
+}
+
+// NewCondition returns a new Condition that filters goroutines
+// based on built-in|used-defined filters added later.
+func NewCondition(opts ...Option) *Condition {
+	c := &Condition{}
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.filters == nil {
+		c.filters = make([]interface{}, 0, defaultFilterSize)
+	}
+	if c.buf == nil {
+		c.buf = make([]byte, defaultBufSize)
+	}
+
+	return c
 }
 
 // FilterByGo adds a user-defined FilterByGo filter.
