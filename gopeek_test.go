@@ -78,7 +78,7 @@ func TestGoPeek(t *testing.T) {
 					GT(2).
 					Is(gopeek.StateSleeping).
 					EQ(1).
-					Wait(time.Millisecond)
+					Wait(time.Second)
 			},
 			expected: 1,
 		},
@@ -87,9 +87,8 @@ func TestGoPeek(t *testing.T) {
 		gs, err := ts.do()
 		if ts.err == nil {
 			if err != nil {
-				t.Fatal(err)
-			}
-			if ts.expected != len(gs) {
+				t.Errorf("error occurred ts: %#v, err: %+v\n", ts.do, err)
+			} else if ts.expected != len(gs) {
 				t.Errorf("# of goroutines expected: %d, actual: %d\n", ts.expected, len(gs))
 			}
 		} else if ts.err != err {
