@@ -36,6 +36,7 @@ type (
 	Condition struct {
 		filters []interface{}
 		buf     []byte
+		yield   func()
 	}
 
 	// State represents a state of a goroutine based on G's waitreason.
@@ -133,6 +134,15 @@ func WithBufSize(bs int) Option {
 	}
 }
 
+// WithYieldFunc returns an Option for gopeek.NewCondition
+// that provides a function used for yielding other goroutines while waiting.
+// The default is runtime.Gosched.
+func WithYieldFunc(f func()) Option {
+	return func(c *Condition) {
+		c.yield = f
+	}
+}
+
 // NewCondition returns a new Condition that filters goroutines
 // based on built-in|used-defined filters added later.
 func NewCondition(opts ...Option) *Condition {
@@ -145,6 +155,9 @@ func NewCondition(opts ...Option) *Condition {
 	}
 	if c.buf == nil {
 		c.buf = make([]byte, defaultBufSize)
+	}
+	if c.yield == nil {
+		c.yield = runtime.Gosched
 	}
 
 	return c
@@ -316,7 +329,7 @@ func (c *Condition) Wait(timeout time.Duration) ([]stack.Goroutine, error) {
 		if timeout > 0 && time.Now().Sub(start) > timeout {
 			return nil, ErrTimeout
 		}
-		runtime.Gosched()
+		c.yield()
 	}
 }
 

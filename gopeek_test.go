@@ -18,7 +18,11 @@ func TestGoPeek(t *testing.T) {
 	}{
 		{
 			do: func() ([]stack.Goroutine, error) {
-				return gopeek.NewCondition(gopeek.WithBufSize(256)).
+				return gopeek.NewCondition(
+					gopeek.WithBufSize(256),
+					gopeek.WithYieldFunc(func() {
+						time.Sleep(time.Millisecond)
+					})).
 					FilterByGo(
 						func(g *stack.Goroutine) bool {
 							return true
@@ -39,8 +43,8 @@ func TestGoPeek(t *testing.T) {
 			do: func() ([]stack.Goroutine, error) {
 				// Never happen
 				return gopeek.NewCondition(gopeek.WithFilterSize(2)).
-					In(gopeek.StateSysCall, gopeek.StateWaitingIO).
-					GT(1).Wait(time.Millisecond)
+					GT(2).
+					In(gopeek.StateSysCall, gopeek.StateWaitingIO).Wait(time.Millisecond)
 			},
 			err: gopeek.ErrTimeout,
 		},
